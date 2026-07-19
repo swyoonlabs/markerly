@@ -3,6 +3,7 @@ const DEFAULT_TOOL = {
   color: "#ff4d6d",
   penSize: 6,
   eraserSize: 28,
+  textSize: 28,
   opacity: 1,
   rightClickClear: true
 };

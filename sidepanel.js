@@ -5,7 +5,7 @@ const ui = {
   enabled: $("#enabled"), workspace: $("#workspace"), blocked: $("#blocked"),
   pageTitle: $("#pageTitle"), status: $("#status"), statusDot: $("#statusDot"),
   color: $("#color"), colorValue: $("#colorValue"), colorArea: $("#colorArea"),
-  size: $("#size"), sizeValue: $("#sizeValue"), opacity: $("#opacity"),
+  size: $("#size"), sizeLabel: $("#sizeLabel"), sizeValue: $("#sizeValue"), opacity: $("#opacity"),
   opacityValue: $("#opacityValue"), toolLabel: $("#toolLabel"),
   rightClickClear: $("#rightClickClear"), save: $("#save"),
   captureInterval: $("#captureInterval"), sequence: $("#sequence"),
@@ -15,7 +15,7 @@ const ui = {
 let tab = null;
 let state = { enabled: false, mode: "draw" };
 let tool = {
-  tool: "pen", color: "#ff4d6d", penSize: 6, eraserSize: 28,
+  tool: "pen", color: "#ff4d6d", penSize: 6, eraserSize: 28, textSize: 28,
   opacity: 1, rightClickClear: true
 };
 let sequenceRunning = false;
@@ -143,11 +143,13 @@ function render() {
     const selected = state.mode === "navigate" ? button.dataset.action === "navigate" : button.dataset.action === tool.tool;
     button.classList.toggle("active", selected);
   });
-  ui.toolLabel.textContent = state.mode === "navigate" ? "페이지 조작" : tool.tool === "pen" ? "펜" : "지우개";
-  ui.colorArea.style.display = tool.tool === "pen" ? "block" : "none";
+  ui.toolLabel.textContent = state.mode === "navigate" ? "페이지 조작" : tool.tool === "pen" ? "펜" : tool.tool === "eraser" ? "지우개" : "글자";
+  ui.colorArea.style.display = tool.tool === "eraser" ? "none" : "block";
   ui.color.value = tool.color;
   ui.colorValue.value = tool.color.toUpperCase();
-  const activeSize = tool.tool === "eraser" ? tool.eraserSize : tool.penSize;
+  const activeSize = tool.tool === "eraser" ? tool.eraserSize : tool.tool === "text" ? tool.textSize : tool.penSize;
+  ui.sizeLabel.textContent = tool.tool === "text" ? "글자 크기" : "굵기";
+  ui.size.min = tool.tool === "text" ? "12" : "2";
   ui.size.value = activeSize;
   ui.sizeValue.value = `${activeSize} px`;
   ui.opacity.value = Math.round(tool.opacity * 100);
@@ -187,7 +189,7 @@ $$(".tool").forEach((button) => button.addEventListener("click", async () => {
 $$(".swatch").forEach((button) => button.addEventListener("click", () => setTool({ color: button.dataset.color })));
 ui.color.addEventListener("input", () => setTool({ color: ui.color.value }));
 ui.size.addEventListener("input", () => {
-  const sizeKey = tool.tool === "eraser" ? "eraserSize" : "penSize";
+  const sizeKey = tool.tool === "eraser" ? "eraserSize" : tool.tool === "text" ? "textSize" : "penSize";
   setTool({ [sizeKey]: Number(ui.size.value) });
 });
 ui.opacity.addEventListener("input", () => setTool({ opacity: Number(ui.opacity.value) / 100 }));

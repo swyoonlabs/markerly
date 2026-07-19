@@ -11,7 +11,7 @@
   let strokes = [];
   let state = { enabled: false, mode: "draw" };
   let tool = {
-    tool: "pen", color: "#ff4d6d", penSize: 6, eraserSize: 28,
+    tool: "pen", color: "#ff4d6d", penSize: 6, eraserSize: 28, textSize: 28,
     opacity: 1, rightClickClear: true
   };
   const PEN_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(`
@@ -49,8 +49,23 @@
   }
 
   function renderStroke(stroke) {
-    if (!context || stroke.points.length < 1) return;
+    if (!context) return;
     context.save();
+    if (stroke.kind === "text") {
+      context.globalAlpha = stroke.opacity;
+      context.fillStyle = stroke.color;
+      context.font = `600 ${stroke.size}px system-ui, sans-serif`;
+      context.textBaseline = "top";
+      stroke.text.split("\n").forEach((line, index) => {
+        context.fillText(line, stroke.x, stroke.y + index * stroke.size * 1.25);
+      });
+      context.restore();
+      return;
+    }
+    if (!stroke.points?.length) {
+      context.restore();
+      return;
+    }
     context.globalCompositeOperation = stroke.tool === "eraser" ? "destination-out" : "source-over";
     context.globalAlpha = stroke.opacity;
     context.strokeStyle = stroke.color;
@@ -119,7 +134,7 @@
     if (!canvas) return;
     const canDraw = state.mode === "draw";
     canvas.style.pointerEvents = canDraw ? "auto" : "none";
-    canvas.style.cursor = tool.tool === "eraser" ? ERASER_CURSOR : PEN_CURSOR;
+    canvas.style.cursor = tool.tool === "eraser" ? ERASER_CURSOR : tool.tool === "text" ? "text" : PEN_CURSOR;
   }
 
   function applyState(nextState) {
@@ -135,6 +150,11 @@
 
   function startDrawing(event) {
     if (event.button !== 0 || state.mode !== "draw") return;
+    if (tool.tool === "text") {
+      createTextEditor(point(event));
+      event.preventDefault();
+      return;
+    }
     drawing = true;
     currentStroke = {
       tool: tool.tool,
@@ -174,6 +194,48 @@
 
   function saveDrawing() {
     return send({ type: "SAVE_DRAWING", strokes });
+  }
+
+  function createTextEditor(position) {
+    document.getElementById("page-canvas-text-editor")?.remove();
+    const editor = document.createElement("textarea");
+    editor.id = "page-canvas-text-editor";
+    editor.rows = 1;
+    editor.placeholder = "글자를 입력하세요";
+    Object.assign(editor.style, {
+      position: "fixed", left: `${position.x}px`, top: `${position.y}px`,
+      zIndex: "2147483647", minWidth: "180px", maxWidth: "420px", padding: "6px 8px",
+      border: `1px solid ${tool.color}`, borderRadius: "6px", outline: "none",
+      color: tool.color, background: "rgba(255,255,255,.94)", resize: "both",
+      font: `600 ${tool.textSize}px system-ui, sans-serif`, lineHeight: "1.25",
+      boxShadow: "0 5px 20px rgba(0,0,0,.18)"
+    });
+    let finished = false;
+    const finish = async (save) => {
+      if (finished) return;
+      finished = true;
+      const text = editor.value.trim();
+      editor.remove();
+      if (!save || !text) return;
+      strokes.push({
+        kind: "text", text, x: position.x, y: position.y,
+        color: tool.color, size: tool.textSize, opacity: tool.opacity
+      });
+      render();
+      await saveDrawing();
+    };
+    editor.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        finish(false);
+      } else if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        finish(true);
+      }
+    });
+    editor.addEventListener("blur", () => finish(true));
+    document.documentElement.appendChild(editor);
+    editor.focus();
   }
 
   async function clear() {
