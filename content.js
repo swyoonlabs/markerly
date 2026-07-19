@@ -14,102 +14,6 @@
     tool: "pen", color: "#ff4d6d", penSize: 6, eraserSize: 28,
     opacity: 1, rightClickClear: true
   };
-  let recordingStream = null;
-  let mediaRecorder = null;
-  let recordedChunks = [];
-  let recordingStartedAt = null;
-
-  function notifyRecording(recording) {
-    chrome.runtime.sendMessage({
-      type: "RECORDING_CHANGED",
-      recording,
-      startedAt: recording ? recordingStartedAt : null
-    }).catch(() => {});
-  }
-
-  function recordingMimeType() {
-    return ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"]
-      .find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
-  }
-
-  async function finishRecording() {
-    const blob = new Blob(recordedChunks, { type: mediaRecorder?.mimeType || "video/webm" });
-    if (blob.size) {
-      const url = URL.createObjectURL(blob);
-      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `page-canvas-recording-${stamp}.webm`;
-      link.style.display = "none";
-      document.documentElement.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    }
-    recordingStream?.getTracks().forEach((track) => track.stop());
-    recordingStream = null;
-    mediaRecorder = null;
-    recordedChunks = [];
-    recordingStartedAt = null;
-    notifyRecording(false);
-  }
-
-  function stopPageRecording() {
-    if (mediaRecorder?.state === "recording") mediaRecorder.stop();
-  }
-
-  function createRecordingButton() {
-    document.getElementById("page-canvas-record-start")?.remove();
-    const button = document.createElement("button");
-    button.id = "page-canvas-record-start";
-    button.type = "button";
-    button.textContent = "● 녹화 시작";
-    Object.assign(button.style, {
-      position: "fixed", top: "20px", left: "50%", transform: "translateX(-50%)",
-      zIndex: "2147483647", padding: "12px 20px", border: "0", borderRadius: "999px",
-      color: "#fff", background: "#df3652", boxShadow: "0 8px 28px rgba(0,0,0,.28)",
-      font: "700 14px system-ui, sans-serif", cursor: "pointer"
-    });
-    button.addEventListener("click", async () => {
-      button.disabled = true;
-      button.textContent = "화면 선택 중…";
-      try {
-        recordingStream = await navigator.mediaDevices.getDisplayMedia({
-          video: { displaySurface: "browser", frameRate: { ideal: 30, max: 30 } },
-          audio: true,
-          preferCurrentTab: true,
-          surfaceSwitching: "exclude",
-          systemAudio: "include"
-        });
-        const displaySurface = recordingStream.getVideoTracks()[0]?.getSettings().displaySurface;
-        if (displaySurface && displaySurface !== "browser") {
-          recordingStream.getTracks().forEach((track) => track.stop());
-          recordingStream = null;
-          throw new Error("Chrome 탭을 선택하세요.");
-        }
-        button.remove();
-        const mimeType = recordingMimeType();
-        recordedChunks = [];
-        mediaRecorder = new MediaRecorder(
-          recordingStream,
-          mimeType ? { mimeType, videoBitsPerSecond: 5_000_000 } : undefined
-        );
-        mediaRecorder.addEventListener("dataavailable", (event) => {
-          if (event.data.size) recordedChunks.push(event.data);
-        });
-        mediaRecorder.addEventListener("stop", finishRecording, { once: true });
-        recordingStream.getVideoTracks()[0]?.addEventListener("ended", stopPageRecording);
-        recordingStartedAt = Date.now();
-        mediaRecorder.start(1000);
-        notifyRecording(true);
-      } catch (error) {
-        button.textContent = error?.name === "NotAllowedError" ? "화면 선택이 취소됐어요" : error.message;
-        setTimeout(() => button.remove(), 1800);
-      }
-    }, { once: true });
-    document.documentElement.appendChild(button);
-  }
-
   const PEN_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
       <path d="M5 25.5l1.7-6.4L21.8 4a3 3 0 014.2 0l2 2a3 3 0 010 4.2L12.9 25.3 6.5 27z" fill="#fff" stroke="#171923" stroke-width="2" stroke-linejoin="round"/>
@@ -293,14 +197,6 @@
       applyMode();
     }
     if (message.type === "CLEAR") clear();
-    if (message.type === "ARM_PAGE_RECORDING") createRecordingButton();
-    if (message.type === "STOP_PAGE_RECORDING") stopPageRecording();
-    if (message.type === "GET_PAGE_RECORDING_STATUS") {
-      sendResponse({
-        recording: mediaRecorder?.state === "recording",
-        startedAt: recordingStartedAt
-      });
-    }
   });
 
   send({ type: "GET_CONTEXT" }).then((response) => {

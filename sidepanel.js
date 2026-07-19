@@ -7,8 +7,7 @@ const ui = {
   color: $("#color"), colorValue: $("#colorValue"), colorArea: $("#colorArea"),
   size: $("#size"), sizeValue: $("#sizeValue"), opacity: $("#opacity"),
   opacityValue: $("#opacityValue"), toolLabel: $("#toolLabel"),
-  rightClickClear: $("#rightClickClear"), record: $("#record"),
-  recordLabel: $("#recordLabel"), recordTime: $("#recordTime"), save: $("#save"), clear: $("#clear")
+  rightClickClear: $("#rightClickClear"), save: $("#save"), clear: $("#clear")
 };
 
 let tab = null;
@@ -17,27 +16,6 @@ let tool = {
   tool: "pen", color: "#ff4d6d", penSize: 6, eraserSize: 28,
   opacity: 1, rightClickClear: true
 };
-let recording = false;
-let recordingStartedAt = null;
-let recordingTimer = null;
-
-function formatDuration(milliseconds) {
-  const seconds = Math.max(0, Math.floor(milliseconds / 1000));
-  return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-}
-
-function renderRecording() {
-  ui.record.classList.toggle("recording", recording);
-  ui.recordLabel.textContent = recording ? "영상 녹화 종료" : "영상 녹화 준비";
-  ui.recordTime.hidden = !recording;
-  clearInterval(recordingTimer);
-  recordingTimer = null;
-  if (recording && recordingStartedAt) {
-    const tick = () => { ui.recordTime.textContent = formatDuration(Date.now() - recordingStartedAt); };
-    tick();
-    recordingTimer = setInterval(tick, 1000);
-  }
-}
 
 function isBlocked(url = "") {
   return /^(chrome|edge|about|devtools):/.test(url) || url.startsWith("https://chromewebstore.google.com/");
@@ -135,23 +113,6 @@ ui.size.addEventListener("input", () => {
 });
 ui.opacity.addEventListener("input", () => setTool({ opacity: Number(ui.opacity.value) / 100 }));
 ui.rightClickClear.addEventListener("change", () => setTool({ rightClickClear: ui.rightClickClear.checked }));
-ui.record.addEventListener("click", async () => {
-  ui.record.disabled = true;
-  const previousStatus = ui.status.textContent;
-  try {
-    if (recording) {
-      await page({ type: "STOP_PAGE_RECORDING" });
-    } else {
-      await page({ type: "ARM_PAGE_RECORDING" });
-      ui.status.textContent = "YouTube 화면의 녹화 시작 버튼을 누르세요";
-    }
-  } catch (error) {
-    ui.status.textContent = error?.message || "녹화를 준비하지 못했어요";
-  } finally {
-    ui.record.disabled = false;
-    if (!recording) setTimeout(() => { ui.status.textContent = previousStatus; }, 2200);
-  }
-});
 ui.save.addEventListener("click", async () => {
   if (!tab?.windowId) return;
   ui.save.disabled = true;
@@ -181,12 +142,6 @@ ui.clear.addEventListener("click", async () => {
 });
 
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === "RECORDING_CHANGED") {
-    recording = message.recording;
-    recordingStartedAt = message.startedAt ?? null;
-    renderRecording();
-    ui.status.textContent = recording ? "현재 탭을 녹화하고 있어요" : "녹화를 저장했어요";
-  }
   if (message.type === "SET_TAB_STATE" && message.patch && tab?.id) {
     state = { ...state, ...message.patch };
     render();
@@ -211,10 +166,6 @@ async function initialize() {
   }
   render();
   if (state.enabled) await page({ type: "APPLY_STATE", state });
-  const recordingStatus = await page({ type: "GET_PAGE_RECORDING_STATUS" }, false);
-  recording = Boolean(recordingStatus?.recording);
-  recordingStartedAt = recordingStatus?.startedAt ?? null;
-  renderRecording();
 }
 
 initialize();

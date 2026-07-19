@@ -50,16 +50,9 @@ input[type="color"] { width: 30px; height: 30px; padding: 2px; border: 1px solid
 .swatch { width: 24px; height: 24px; padding: 0; border: 3px solid #fff; border-radius: 50%; outline: 1px solid transparent; background: var(--color); cursor: pointer; }
 .swatch.active { outline-color: #aeb2bd; }
 input[type="range"] { width: 100%; height: 4px; accent-color: #6657e8; cursor: pointer; }
-.record, .save, .clear { width: 100%; padding: 10px; border: 0; border-radius: 9px; font-size: 11px; font-weight: 750; cursor: pointer; }
-.record { display: flex; align-items: center; gap: 7px; margin-top: 18px; color: #b4233d; background: #fff0f2; }
-.record-dot { width: 9px; height: 9px; border-radius: 50%; background: #e43e59; }
-.record time { margin-left: auto; font-size: 10px; font-variant-numeric: tabular-nums; }
-.record.recording { color: #fff; background: #df3652; }
-.record.recording .record-dot { border-radius: 2px; background: #fff; animation: record-pulse 1.2s infinite; }
-@keyframes record-pulse { 50% { opacity: .45; } }
-.record-help { margin: 6px 3px 0; color: #8b909d; font-size: 9px; line-height: 1.4; text-align: center; }
-.record:disabled, .save:disabled { opacity: .55; cursor: wait; }
-.save { margin-top: 8px; color: #fff; background: #6657e8; box-shadow: 0 5px 13px rgba(102,87,232,.2); }
+.save, .clear { width: 100%; padding: 10px; border: 0; border-radius: 9px; font-size: 11px; font-weight: 750; cursor: pointer; }
+.save:disabled { opacity: .55; cursor: wait; }
+.save { margin-top: 18px; color: #fff; background: #6657e8; box-shadow: 0 5px 13px rgba(102,87,232,.2); }
 .save:hover { background: #5849d6; }
 .save span { margin-right: 4px; font-size: 15px; }
 .clear { margin-top: 8px; color: #c53d55; background: #fff1f3; }
