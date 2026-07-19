@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,77 +10,56 @@
     <main class="app">
       <header class="topbar">
         <div class="brand-mark">A</div>
-        <div class="brand-copy">
-          <h1>Annotap</h1>
-          <p id="pageTitle">현재 페이지</p>
-        </div>
-        <label class="switch" aria-label="캔버스 켜기">
-          <input id="enabled" type="checkbox" />
-          <span></span>
+        <div class="brand-copy"><h1>Annotap</h1><p id="pageTitle" data-i18n="currentPage">Current page</p></div>
+        <label class="switch" data-i18n-aria-label="toggleCanvas" aria-label="Toggle canvas">
+          <input id="enabled" type="checkbox" /><span></span>
         </label>
       </header>
 
       <section id="blocked" class="blocked" hidden>
         <span>!</span>
-        <div><strong>이 페이지에서는 사용할 수 없어요</strong><p>일반 웹페이지를 열고 다시 시도하세요.</p></div>
+        <div><strong data-i18n="blockedTitle">Annotap cannot run on this page</strong><p data-i18n="blockedDescription">Open a regular webpage and try again.</p></div>
       </section>
 
       <div id="workspace">
         <section class="card">
-          <div class="section-heading"><h2>무엇을 할까요?</h2><span id="toolLabel">펜</span></div>
+          <div class="section-heading"><h2 data-i18n="chooseTool">Choose a tool</h2><span id="toolLabel">Pen</span></div>
           <div class="tool-grid">
-            <button class="tool active" data-action="pen" type="button"><span>✎</span>그리기</button>
-            <button class="tool" data-action="eraser" type="button"><span>◇</span>지우기</button>
-            <button class="tool" data-action="text" type="button"><span>T</span>글자</button>
-            <button class="tool" data-action="navigate" type="button"><span>↗</span>페이지</button>
+            <button class="tool active" data-action="pen" type="button"><span>✎</span><span data-i18n="draw">Draw</span></button>
+            <button class="tool" data-action="eraser" type="button"><span>◇</span><span data-i18n="erase">Erase</span></button>
+            <button class="tool" data-action="text" type="button"><span>T</span><span data-i18n="textTool">Text</span></button>
+            <button class="tool" data-action="navigate" type="button"><span>↗</span><span data-i18n="pageTool">Page</span></button>
           </div>
 
           <div id="colorArea" class="field">
-            <div class="field-label"><label for="color">색상</label><output id="colorValue">#FF4D6D</output></div>
+            <div class="field-label"><label for="color" data-i18n="color">Color</label><output id="colorValue">#FF4D6D</output></div>
             <div class="colors">
               <input id="color" type="color" value="#ff4d6d" />
-              <button class="swatch active" style="--color:#ff4d6d" data-color="#ff4d6d" aria-label="핑크" type="button"></button>
-              <button class="swatch" style="--color:#ffb020" data-color="#ffb020" aria-label="주황" type="button"></button>
-              <button class="swatch" style="--color:#2ecc71" data-color="#2ecc71" aria-label="초록" type="button"></button>
-              <button class="swatch" style="--color:#2684ff" data-color="#2684ff" aria-label="파랑" type="button"></button>
-              <button class="swatch" style="--color:#111827" data-color="#111827" aria-label="검정" type="button"></button>
+              <button class="swatch active" style="--color:#ff4d6d" data-color="#ff4d6d" data-i18n-aria-label="pink" aria-label="Pink" type="button"></button>
+              <button class="swatch" style="--color:#ffb020" data-color="#ffb020" data-i18n-aria-label="orange" aria-label="Orange" type="button"></button>
+              <button class="swatch" style="--color:#2ecc71" data-color="#2ecc71" data-i18n-aria-label="green" aria-label="Green" type="button"></button>
+              <button class="swatch" style="--color:#2684ff" data-color="#2684ff" data-i18n-aria-label="blue" aria-label="Blue" type="button"></button>
+              <button class="swatch" style="--color:#111827" data-color="#111827" data-i18n-aria-label="black" aria-label="Black" type="button"></button>
             </div>
           </div>
 
-          <div class="field">
-            <div class="field-label"><label id="sizeLabel" for="size">굵기</label><output id="sizeValue">6 px</output></div>
-            <input id="size" type="range" min="2" max="72" value="6" />
-          </div>
+          <div class="field"><div class="field-label"><label id="sizeLabel" for="size" data-i18n="thickness">Thickness</label><output id="sizeValue">6 px</output></div><input id="size" type="range" min="2" max="72" value="6" /></div>
+          <div class="field"><div class="field-label"><label for="opacity" data-i18n="opacity">Opacity</label><output id="opacityValue">100%</output></div><input id="opacity" type="range" min="10" max="100" value="100" /></div>
 
-          <div class="field">
-            <div class="field-label"><label for="opacity">불투명도</label><output id="opacityValue">100%</output></div>
-            <input id="opacity" type="range" min="10" max="100" value="100" />
-          </div>
           <label class="check-option">
-            <input id="rightClickClear" type="checkbox" checked />
-            <span class="check-box"></span>
-            <span class="check-copy"><strong>오른쪽 클릭으로 모두 지우기</strong><small>그리기 화면을 빠르게 초기화합니다.</small></span>
+            <input id="rightClickClear" type="checkbox" checked /><span class="check-box"></span>
+            <span class="check-copy"><strong data-i18n="rightClickClear">Clear all with right-click</strong><small data-i18n="rightClickClearHelp">Quickly reset the drawing layer.</small></span>
           </label>
-          <button id="save" class="save" type="button"><span>↓</span> 현재 화면 저장</button>
-          <div class="sequence-row">
-            <label for="captureInterval">연속 캡처 간격</label>
-            <select id="captureInterval">
-              <option value="3000" selected>3초</option>
-              <option value="5000">5초</option>
-              <option value="10000">10초</option>
-            </select>
-          </div>
-          <button id="sequence" class="sequence" type="button"><span class="sequence-dot"></span><span id="sequenceLabel">연속 캡처 시작</span><output id="sequenceCount">0장</output></button>
-          <p class="sequence-help">무료 버전은 최대 10장까지 ZIP 하나로 저장합니다.</p>
-          <button id="clear" class="clear" type="button">화면의 그림 모두 지우기</button>
+          <button id="save" class="save" type="button"><span>↓</span> <span data-i18n="saveCurrentView">Save current view</span></button>
+          <div class="sequence-row"><label for="captureInterval" data-i18n="captureInterval">Capture interval</label><select id="captureInterval"><option value="3000" selected data-i18n="seconds3">3 seconds</option><option value="5000" data-i18n="seconds5">5 seconds</option><option value="10000" data-i18n="seconds10">10 seconds</option></select></div>
+          <button id="sequence" class="sequence" type="button"><span class="sequence-dot"></span><span id="sequenceLabel" data-i18n="startSequence">Start sequence capture</span><output id="sequenceCount">0</output></button>
+          <p class="sequence-help" data-i18n="sequenceHelp">The free version saves up to 10 captures in one ZIP file.</p>
+          <button id="clear" class="clear" type="button" data-i18n="clearAll">Clear all drawings</button>
         </section>
-
-        <p class="hint">영상 조작이 필요하면 <strong>페이지</strong>를 선택하세요.</p>
+        <p class="hint" data-i18n-html="navigationHint">Select <strong>Page</strong> when you need to control the video or webpage.</p>
       </div>
-
-      <footer><span id="statusDot"></span><p id="status">캔버스 꺼짐</p></footer>
+      <footer><span id="statusDot"></span><p id="status" data-i18n="canvasOff">Canvas off</p></footer>
     </main>
-    <script src="zip.js"></script>
-    <script src="sidepanel.js"></script>
+    <script src="zip.js"></script><script src="sidepanel.js"></script>
   </body>
 </html>

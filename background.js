@@ -48,7 +48,7 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     const tabId = message.tabId ?? sender.tab?.id;
-    if (!tabId) throw new Error("탭 정보를 찾을 수 없습니다.");
+    if (!tabId) throw new Error(chrome.i18n.getMessage("tabNotFound") || "The active tab could not be found.");
 
     switch (message.type) {
       case "GET_CONTEXT": {
@@ -80,7 +80,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         break;
       }
       default:
-        sendResponse({ ok: false, error: "알 수 없는 요청입니다." });
+        sendResponse({ ok: false, error: chrome.i18n.getMessage("unknownRequest") || "Unknown request." });
     }
   })().catch((error) => sendResponse({ ok: false, error: error.message }));
   return true;

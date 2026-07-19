@@ -268,7 +268,7 @@
     const editor = document.createElement("textarea");
     editor.id = "annotap-text-editor";
     editor.rows = 1;
-    editor.placeholder = "글자를 입력하세요";
+    editor.placeholder = chrome.i18n.getMessage("textPlaceholder") || "Type your text";
     Object.assign(editor.style, {
       position: "fixed", left: `${position.x}px`, top: `${position.y}px`,
       zIndex: "2147483647", minWidth: "180px", maxWidth: "420px", padding: "6px 8px",

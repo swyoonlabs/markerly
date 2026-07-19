@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Annotap",
-  "version": "2.1.0",
+  "name": "__MSG_extensionName__",
+  "version": "2.2.0",
   "minimum_chrome_version": "116",
-  "description": "탭별 웹페이지 캔버스에서 그리고, 지우고, 작업을 복원합니다.",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -12,7 +13,7 @@
   "permissions": ["sidePanel", "storage", "tabs", "scripting", "downloads"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_title": "Annotap",
+    "default_title": "__MSG_extensionActionTitle__",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png"

@@ -1,5 +1,13 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+const t = (key, substitutions) => chrome.i18n.getMessage(key, substitutions) || key;
+
+function localizeDocument() {
+  document.documentElement.lang = chrome.i18n.getUILanguage().split("-")[0] || "en";
+  $$('[data-i18n]').forEach((element) => { element.textContent = t(element.dataset.i18n); });
+  $$('[data-i18n-html]').forEach((element) => { element.innerHTML = t(element.dataset.i18nHtml); });
+  $$('[data-i18n-aria-label]').forEach((element) => { element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel)); });
+}
 
 const ui = {
   enabled: $("#enabled"), workspace: $("#workspace"), blocked: $("#blocked"),
@@ -27,8 +35,8 @@ const MAX_SEQUENCE_BYTES = 200 * 1024 * 1024;
 
 function renderSequence() {
   ui.sequence.classList.toggle("running", sequenceRunning);
-  ui.sequenceLabel.textContent = sequenceRunning ? "연속 캡처 종료" : "연속 캡처 시작";
-  ui.sequenceCount.value = `${sequenceFrames.length}장`;
+  ui.sequenceLabel.textContent = t(sequenceRunning ? "stopSequence" : "startSequence");
+  ui.sequenceCount.value = t("captureCount", String(sequenceFrames.length));
   ui.captureInterval.disabled = sequenceRunning;
 }
 
@@ -43,17 +51,17 @@ async function captureSequenceFrame() {
     const bytes = new Uint8Array(await (await fetch(dataUrl)).arrayBuffer());
     const totalBytes = sequenceFrames.reduce((total, frame) => total + frame.bytes.length, 0);
     if (sequenceFrames.length >= MAX_SEQUENCE_FRAMES || totalBytes + bytes.length > MAX_SEQUENCE_BYTES) {
-      await stopSequenceCapture("무료 캡처 10장에 도달해 자동으로 저장했어요");
+      await stopSequenceCapture(t("sequenceLimitReached"));
       return;
     }
     const index = String(sequenceFrames.length + 1).padStart(4, "0");
     sequenceFrames.push({ name: `capture-${index}.jpg`, bytes, date: new Date() });
     renderSequence();
     if (sequenceFrames.length >= MAX_SEQUENCE_FRAMES) {
-      await stopSequenceCapture("무료 캡처 10장에 도달해 자동으로 저장했어요");
+      await stopSequenceCapture(t("sequenceLimitReached"));
     }
   } catch {
-    await stopSequenceCapture("캡처가 중단되어 지금까지의 이미지를 저장했어요");
+    await stopSequenceCapture(t("sequenceInterrupted"));
   } finally {
     sequenceCapturing = false;
   }
@@ -66,16 +74,16 @@ async function startSequenceCapture() {
   await captureSequenceFrame();
   if (!sequenceRunning) return;
   sequenceTimer = setInterval(captureSequenceFrame, Number(ui.captureInterval.value));
-  ui.status.textContent = "연속 캡처 중 · 사이드 패널을 열어두세요";
+  ui.status.textContent = t("sequenceCapturing");
 }
 
-async function stopSequenceCapture(statusMessage = "연속 캡처를 저장했어요") {
+async function stopSequenceCapture(statusMessage = t("sequenceSaved")) {
   clearInterval(sequenceTimer);
   sequenceTimer = null;
   sequenceRunning = false;
   renderSequence();
   if (!sequenceFrames.length) {
-    ui.status.textContent = "저장할 캡처 이미지가 없어요";
+    ui.status.textContent = t("noCaptures");
     return;
   }
   ui.sequence.disabled = true;
@@ -93,7 +101,7 @@ async function stopSequenceCapture(statusMessage = "연속 캡처를 저장했�
     sequenceFrames = [];
     renderSequence();
   } catch {
-    ui.status.textContent = "연속 캡처 ZIP을 저장하지 못했어요";
+    ui.status.textContent = t("sequenceSaveFailed");
   } finally {
     ui.sequence.disabled = false;
   }
@@ -146,12 +154,12 @@ function render() {
     const selected = state.mode === "navigate" ? button.dataset.action === "navigate" : button.dataset.action === tool.tool;
     button.classList.toggle("active", selected);
   });
-  ui.toolLabel.textContent = state.mode === "navigate" ? "페이지 조작" : tool.tool === "pen" ? "펜" : tool.tool === "eraser" ? "지우개" : "글자";
+  ui.toolLabel.textContent = t(state.mode === "navigate" ? "pageControl" : tool.tool === "pen" ? "pen" : tool.tool === "eraser" ? "eraser" : "textTool");
   ui.colorArea.style.display = tool.tool === "eraser" ? "none" : "block";
   ui.color.value = tool.color;
   ui.colorValue.value = tool.color.toUpperCase();
   const activeSize = tool.tool === "eraser" ? tool.eraserSize : tool.tool === "text" ? tool.textSize : tool.penSize;
-  ui.sizeLabel.textContent = tool.tool === "text" ? "글자 크기" : "굵기";
+  ui.sizeLabel.textContent = t(tool.tool === "text" ? "textSize" : "thickness");
   ui.size.min = tool.tool === "text" ? "12" : "2";
   ui.size.value = activeSize;
   ui.sizeValue.value = `${activeSize} px`;
@@ -160,7 +168,7 @@ function render() {
   ui.rightClickClear.checked = tool.rightClickClear !== false;
   $$(".swatch").forEach((button) => button.classList.toggle("active", button.dataset.color.toLowerCase() === tool.color.toLowerCase()));
   ui.statusDot.classList.toggle("on", state.enabled);
-  ui.status.textContent = !state.enabled ? "이 탭의 캔버스 꺼짐" : state.mode === "draw" ? "그리기 준비됨" : "페이지 조작 중";
+  ui.status.textContent = t(!state.enabled ? "canvasOffForTab" : state.mode === "draw" ? "readyToDraw" : "controllingPage");
 }
 
 async function setState(patch) {
@@ -210,9 +218,9 @@ ui.save.addEventListener("click", async () => {
       saveAs: false
     });
     ui.statusDot.classList.add("saved");
-    ui.status.textContent = "배경과 그림을 함께 저장했어요";
+    ui.status.textContent = t("captureSaved");
   } catch {
-    ui.status.textContent = "화면을 저장하지 못했어요";
+    ui.status.textContent = t("captureFailed");
   } finally {
     ui.save.disabled = false;
     setTimeout(() => {
@@ -237,7 +245,7 @@ chrome.runtime.onMessage.addListener((message) => {
 });
 
 chrome.tabs.onActivated.addListener(async () => {
-  if (sequenceRunning) await stopSequenceCapture("탭이 변경되어 캡처를 종료했어요");
+  if (sequenceRunning) await stopSequenceCapture(t("tabChanged"));
   initialize();
 });
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
@@ -249,7 +257,7 @@ async function initialize() {
   const blocked = !tab || isBlocked(tab.url);
   showBlocked(blocked);
   if (blocked) return;
-  ui.pageTitle.textContent = tab.title || "현재 페이지";
+  ui.pageTitle.textContent = tab.title || t("currentPage");
   const response = await background({ type: "GET_TAB_STATE" });
   if (response?.ok) {
     state = response.state;
@@ -259,4 +267,5 @@ async function initialize() {
   if (state.enabled) await page({ type: "APPLY_STATE", state });
 }
 
+localizeDocument();
 initialize();
