@@ -8,6 +8,7 @@
   let context;
   let drawing = false;
   let currentStroke = null;
+  let movingText = null;
   let strokes = [];
   let state = { enabled: false, mode: "draw" };
   let tool = {
@@ -148,10 +149,48 @@
     return { x: event.clientX, y: event.clientY };
   }
 
+  function textBounds(item) {
+    if (!context || item.kind !== "text") return null;
+    context.save();
+    context.font = `600 ${item.size}px system-ui, sans-serif`;
+    const lines = item.text.split("\n");
+    const width = Math.max(...lines.map((line) => context.measureText(line).width), item.size);
+    context.restore();
+    return { x: item.x, y: item.y, width, height: lines.length * item.size * 1.25 };
+  }
+
+  function findTextAt(position) {
+    for (let index = strokes.length - 1; index >= 0; index -= 1) {
+      const item = strokes[index];
+      const bounds = textBounds(item);
+      if (!bounds) continue;
+      const padding = 6;
+      if (
+        position.x >= bounds.x - padding && position.x <= bounds.x + bounds.width + padding &&
+        position.y >= bounds.y - padding && position.y <= bounds.y + bounds.height + padding
+      ) return item;
+    }
+    return null;
+  }
+
   function startDrawing(event) {
     if (event.button !== 0 || state.mode !== "draw") return;
     if (tool.tool === "text") {
-      createTextEditor(point(event));
+      const position = point(event);
+      const target = findTextAt(position);
+      if (target) {
+        movingText = {
+          item: target,
+          offsetX: position.x - target.x,
+          offsetY: position.y - target.y,
+          originalX: target.x,
+          originalY: target.y
+        };
+        canvas.setPointerCapture(event.pointerId);
+        canvas.style.cursor = "grabbing";
+      } else {
+        createTextEditor(position);
+      }
       event.preventDefault();
       return;
     }
@@ -169,6 +208,18 @@
   }
 
   function continueDrawing(event) {
+    if (movingText) {
+      const position = point(event);
+      movingText.item.x = position.x - movingText.offsetX;
+      movingText.item.y = position.y - movingText.offsetY;
+      render();
+      event.preventDefault();
+      return;
+    }
+    if (!drawing && tool.tool === "text") {
+      canvas.style.cursor = findTextAt(point(event)) ? "grab" : "text";
+      return;
+    }
     if (!drawing || !currentStroke) return;
     const events = event.getCoalescedEvents?.() ?? [event];
     events.forEach((item) => currentStroke.points.push(point(item)));
@@ -177,6 +228,13 @@
   }
 
   async function finishDrawing(event) {
+    if (movingText) {
+      movingText = null;
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      canvas.style.cursor = "text";
+      await saveDrawing();
+      return;
+    }
     if (!drawing || !currentStroke) return;
     drawing = false;
     strokes.push(currentStroke);
@@ -187,6 +245,12 @@
   }
 
   function cancelDrawing() {
+    if (movingText) {
+      movingText.item.x = movingText.originalX;
+      movingText.item.y = movingText.originalY;
+      movingText = null;
+      render();
+    }
     drawing = false;
     currentStroke = null;
     render();
