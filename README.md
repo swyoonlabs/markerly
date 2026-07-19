@@ -38,3 +38,13 @@ Annotap은 웹페이지 위에 투명 캔버스를 띄워 메모하고 표시할
 5. 연속 캡처 간격을 고르고 **연속 캡처 시작**을 누르면 최대 10장의 이미지가 ZIP 하나로 저장됩니다.
 
 Chrome 내부 페이지(`chrome://...`)와 Chrome 웹 스토어에서는 보안 정책상 사용할 수 없습니다. 로컬 HTML 파일에서 사용하려면 확장 프로그램 세부정보에서 **파일 URL에 대한 액세스 허용**을 켜세요.
+
+## 저장소 구조
+
+- 루트: 확장 프로그램 런타임 파일
+- `icons/`: Manifest 및 스토어 아이콘
+- `screenshots/`: Chrome Web Store 스크린샷
+- `scripts/`: 배포 패키지 생성 도구
+- `store-assets/`: 스토어 설명, 권한 설명, 개인정보처리방침
+
+스토어 업로드 ZIP은 PowerShell에서 `./scripts/package-extension.ps1`을 실행해 생성합니다.
