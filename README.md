@@ -46,5 +46,6 @@ Chrome 내부 페이지(`chrome://...`)와 Chrome 웹 스토어에서는 보안 
 - `screenshots/`: Chrome Web Store 스크린샷
 - `scripts/`: 배포 패키지 생성 도구
 - `store-assets/`: 스토어 설명, 권한 설명, 개인정보처리방침
+- `dist/`: Chrome Web Store 업로드 및 GitHub 배포용 ZIP
 
 스토어 업로드 ZIP은 PowerShell에서 `./scripts/package-extension.ps1`을 실행해 생성합니다.

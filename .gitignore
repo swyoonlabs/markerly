@@ -10,7 +10,3 @@ Thumbs.db
 # Dependencies and logs
 node_modules/
 *.log
-
-# Generated store packages
-dist/
-*.zip
