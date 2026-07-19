@@ -2,7 +2,7 @@
 
 ## 이름
 
-Page Canvas Overlay
+Annotap
 
 ## 단일 목적
 
@@ -14,7 +14,7 @@ Page Canvas Overlay
 
 ## 상세 설명
 
-Page Canvas Overlay는 웹페이지를 보면서 표시하거나 설명해야 할 때 사용하는 로컬 전용 주석 도구입니다.
+Annotap은 웹페이지를 보면서 표시하거나 설명해야 할 때 사용하는 로컬 전용 주석 도구입니다.
 
 - 탭별 Canvas ON/OFF
 - 펜 색상·굵기·불투명도 조절

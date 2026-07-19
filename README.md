@@ -1,6 +1,8 @@
-# Page Canvas Overlay
+# Annotap
 
-웹페이지 위에 투명 캔버스를 띄워 메모하고 표시할 수 있는 Chrome Manifest V3 확장 프로그램입니다.
+Annotap은 웹페이지 위에 투명 캔버스를 띄워 메모하고 표시할 수 있는 Chrome Manifest V3 확장 프로그램입니다.
+
+> Tap. Mark. Capture.
 
 ## 기능
 

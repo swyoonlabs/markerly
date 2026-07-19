@@ -1,6 +1,8 @@
 (() => {
-  const CANVAS_ID = "page-canvas-overlay-extension";
+  const CANVAS_ID = "annotap-canvas-overlay";
+  const LEGACY_CANVAS_ID = "page-canvas-overlay-extension";
   const LEGACY_BADGE_ID = "page-canvas-overlay-badge";
+  document.getElementById(LEGACY_CANVAS_ID)?.remove();
   document.getElementById(CANVAS_ID)?.remove();
   document.getElementById(LEGACY_BADGE_ID)?.remove();
 
@@ -261,9 +263,10 @@
   }
 
   function createTextEditor(position) {
+    document.getElementById("annotap-text-editor")?.remove();
     document.getElementById("page-canvas-text-editor")?.remove();
     const editor = document.createElement("textarea");
-    editor.id = "page-canvas-text-editor";
+    editor.id = "annotap-text-editor";
     editor.rows = 1;
     editor.placeholder = "글자를 입력하세요";
     Object.assign(editor.style, {

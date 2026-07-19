@@ -85,7 +85,7 @@ async function stopSequenceCapture(statusMessage = "연속 캡처를 저장했�
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     await chrome.downloads.download({
       url,
-      filename: `page-canvas/page-canvas-sequence-${stamp}.zip`,
+      filename: `annotap/annotap-sequence-${stamp}.zip`,
       saveAs: false
     });
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -206,7 +206,7 @@ ui.save.addEventListener("click", async () => {
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     await chrome.downloads.download({
       url: dataUrl,
-      filename: `page-canvas/page-canvas-${stamp}.png`,
+      filename: `annotap/annotap-${stamp}.png`,
       saveAs: false
     });
     ui.statusDot.classList.add("saved");
