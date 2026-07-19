@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Page Canvas Overlay",
+  "version": "2.0.0",
+  "minimum_chrome_version": "116",
+  "description": "탭별 웹페이지 캔버스에서 그리고, 지우고, 작업을 복원합니다.",
+  "permissions": ["sidePanel", "storage", "tabs", "scripting", "downloads"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "Page Canvas Overlay"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

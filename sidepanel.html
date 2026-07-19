@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page Canvas</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand-mark">C</div>
+        <div class="brand-copy">
+          <h1>Page Canvas</h1>
+          <p id="pageTitle">현재 페이지</p>
+        </div>
+        <label class="switch" aria-label="캔버스 켜기">
+          <input id="enabled" type="checkbox" />
+          <span></span>
+        </label>
+      </header>
+
+      <section id="blocked" class="blocked" hidden>
+        <span>!</span>
+        <div><strong>이 페이지에서는 사용할 수 없어요</strong><p>일반 웹페이지를 열고 다시 시도하세요.</p></div>
+      </section>
+
+      <div id="workspace">
+        <section class="card">
+          <div class="section-heading"><h2>무엇을 할까요?</h2><span id="toolLabel">펜</span></div>
+          <div class="tool-grid">
+            <button class="tool active" data-action="pen" type="button"><span>✎</span>그리기</button>
+            <button class="tool" data-action="eraser" type="button"><span>◇</span>지우기</button>
+            <button class="tool" data-action="navigate" type="button"><span>↗</span>페이지</button>
+          </div>
+
+          <div id="colorArea" class="field">
+            <div class="field-label"><label for="color">색상</label><output id="colorValue">#FF4D6D</output></div>
+            <div class="colors">
+              <input id="color" type="color" value="#ff4d6d" />
+              <button class="swatch active" style="--color:#ff4d6d" data-color="#ff4d6d" aria-label="핑크" type="button"></button>
+              <button class="swatch" style="--color:#ffb020" data-color="#ffb020" aria-label="주황" type="button"></button>
+              <button class="swatch" style="--color:#2ecc71" data-color="#2ecc71" aria-label="초록" type="button"></button>
+              <button class="swatch" style="--color:#2684ff" data-color="#2684ff" aria-label="파랑" type="button"></button>
+              <button class="swatch" style="--color:#111827" data-color="#111827" aria-label="검정" type="button"></button>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label"><label for="size">굵기</label><output id="sizeValue">6 px</output></div>
+            <input id="size" type="range" min="2" max="60" value="6" />
+          </div>
+
+          <div class="field">
+            <div class="field-label"><label for="opacity">불투명도</label><output id="opacityValue">100%</output></div>
+            <input id="opacity" type="range" min="10" max="100" value="100" />
+          </div>
+          <label class="check-option">
+            <input id="rightClickClear" type="checkbox" checked />
+            <span class="check-box"></span>
+            <span class="check-copy"><strong>오른쪽 클릭으로 모두 지우기</strong><small>그리기 화면을 빠르게 초기화합니다.</small></span>
+          </label>
+          <button id="record" class="record" type="button"><span class="record-dot"></span><span id="recordLabel">영상 녹화 시작</span><time id="recordTime">00:00</time></button>
+          <p class="record-help">준비 후 YouTube 화면에 나타나는 시작 버튼을 누르세요.</p>
+          <button id="save" class="save" type="button"><span>↓</span> 현재 화면 저장</button>
+          <button id="clear" class="clear" type="button">화면의 그림 모두 지우기</button>
+        </section>
+
+        <p class="hint">영상 조작이 필요하면 <strong>페이지</strong>를 선택하세요.</p>
+      </div>
+
+      <footer><span id="statusDot"></span><p id="status">캔버스 꺼짐</p></footer>
+    </main>
+    <script src="sidepanel.js"></script>
+  </body>
+</html>
