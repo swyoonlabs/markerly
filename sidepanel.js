@@ -22,7 +22,7 @@ let sequenceRunning = false;
 let sequenceFrames = [];
 let sequenceTimer = null;
 let sequenceCapturing = false;
-const MAX_SEQUENCE_FRAMES = 300;
+const MAX_SEQUENCE_FRAMES = 10;
 const MAX_SEQUENCE_BYTES = 200 * 1024 * 1024;
 
 function renderSequence() {
@@ -43,12 +43,15 @@ async function captureSequenceFrame() {
     const bytes = new Uint8Array(await (await fetch(dataUrl)).arrayBuffer());
     const totalBytes = sequenceFrames.reduce((total, frame) => total + frame.bytes.length, 0);
     if (sequenceFrames.length >= MAX_SEQUENCE_FRAMES || totalBytes + bytes.length > MAX_SEQUENCE_BYTES) {
-      await stopSequenceCapture("안전 제한에 도달해 자동으로 저장했어요");
+      await stopSequenceCapture("무료 캡처 10장에 도달해 자동으로 저장했어요");
       return;
     }
     const index = String(sequenceFrames.length + 1).padStart(4, "0");
     sequenceFrames.push({ name: `capture-${index}.jpg`, bytes, date: new Date() });
     renderSequence();
+    if (sequenceFrames.length >= MAX_SEQUENCE_FRAMES) {
+      await stopSequenceCapture("무료 캡처 10장에 도달해 자동으로 저장했어요");
+    }
   } catch {
     await stopSequenceCapture("캡처가 중단되어 지금까지의 이미지를 저장했어요");
   } finally {
