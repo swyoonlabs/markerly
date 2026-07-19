@@ -55,6 +55,16 @@ input[type="range"] { width: 100%; height: 4px; accent-color: #6657e8; cursor: p
 .save { margin-top: 18px; color: #fff; background: #6657e8; box-shadow: 0 5px 13px rgba(102,87,232,.2); }
 .save:hover { background: #5849d6; }
 .save span { margin-right: 4px; font-size: 15px; }
+.sequence-row { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; color: #686e7c; font-size: 10px; font-weight: 700; }
+.sequence-row select { padding: 5px 23px 5px 8px; border: 1px solid #dfe2e8; border-radius: 7px; color: #4e5461; background: #fff; font-size: 10px; }
+.sequence { display: flex; align-items: center; gap: 7px; width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ddd9ff; border-radius: 9px; color: #5144c5; background: #f3f1ff; font-size: 11px; font-weight: 750; cursor: pointer; }
+.sequence-dot { width: 9px; height: 9px; border: 2px solid #6657e8; border-radius: 50%; }
+.sequence output { margin-left: auto; font-size: 10px; font-variant-numeric: tabular-nums; }
+.sequence.running { color: #fff; border-color: #df3652; background: #df3652; }
+.sequence.running .sequence-dot { border-color: #fff; border-radius: 2px; animation: sequence-pulse 1.2s infinite; }
+@keyframes sequence-pulse { 50% { opacity: .4; } }
+.sequence:disabled { opacity: .55; cursor: wait; }
+.sequence-help { margin: 6px 2px 0; color: #979ca7; font-size: 9px; line-height: 1.4; text-align: center; }
 .clear { margin-top: 8px; color: #c53d55; background: #fff1f3; }
 .check-option { display: flex; align-items: center; gap: 10px; padding: 12px 0 0; margin-top: 17px; border-top: 1px solid #eceef2; cursor: pointer; }
 .check-option > input { position: absolute; opacity: 0; pointer-events: none; }

@@ -7,7 +7,9 @@ const ui = {
   color: $("#color"), colorValue: $("#colorValue"), colorArea: $("#colorArea"),
   size: $("#size"), sizeValue: $("#sizeValue"), opacity: $("#opacity"),
   opacityValue: $("#opacityValue"), toolLabel: $("#toolLabel"),
-  rightClickClear: $("#rightClickClear"), save: $("#save"), clear: $("#clear")
+  rightClickClear: $("#rightClickClear"), save: $("#save"),
+  captureInterval: $("#captureInterval"), sequence: $("#sequence"),
+  sequenceLabel: $("#sequenceLabel"), sequenceCount: $("#sequenceCount"), clear: $("#clear")
 };
 
 let tab = null;
@@ -16,6 +18,83 @@ let tool = {
   tool: "pen", color: "#ff4d6d", penSize: 6, eraserSize: 28,
   opacity: 1, rightClickClear: true
 };
+let sequenceRunning = false;
+let sequenceFrames = [];
+let sequenceTimer = null;
+let sequenceCapturing = false;
+const MAX_SEQUENCE_FRAMES = 300;
+const MAX_SEQUENCE_BYTES = 200 * 1024 * 1024;
+
+function renderSequence() {
+  ui.sequence.classList.toggle("running", sequenceRunning);
+  ui.sequenceLabel.textContent = sequenceRunning ? "연속 캡처 종료" : "연속 캡처 시작";
+  ui.sequenceCount.value = `${sequenceFrames.length}장`;
+  ui.captureInterval.disabled = sequenceRunning;
+}
+
+async function captureSequenceFrame() {
+  if (!sequenceRunning || sequenceCapturing || !tab?.windowId) return;
+  sequenceCapturing = true;
+  try {
+    const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
+      format: "jpeg",
+      quality: 90
+    });
+    const bytes = new Uint8Array(await (await fetch(dataUrl)).arrayBuffer());
+    const totalBytes = sequenceFrames.reduce((total, frame) => total + frame.bytes.length, 0);
+    if (sequenceFrames.length >= MAX_SEQUENCE_FRAMES || totalBytes + bytes.length > MAX_SEQUENCE_BYTES) {
+      await stopSequenceCapture("안전 제한에 도달해 자동으로 저장했어요");
+      return;
+    }
+    const index = String(sequenceFrames.length + 1).padStart(4, "0");
+    sequenceFrames.push({ name: `capture-${index}.jpg`, bytes, date: new Date() });
+    renderSequence();
+  } catch {
+    await stopSequenceCapture("캡처가 중단되어 지금까지의 이미지를 저장했어요");
+  } finally {
+    sequenceCapturing = false;
+  }
+}
+
+async function startSequenceCapture() {
+  sequenceFrames = [];
+  sequenceRunning = true;
+  renderSequence();
+  await captureSequenceFrame();
+  if (!sequenceRunning) return;
+  sequenceTimer = setInterval(captureSequenceFrame, Number(ui.captureInterval.value));
+  ui.status.textContent = "연속 캡처 중 · 사이드 패널을 열어두세요";
+}
+
+async function stopSequenceCapture(statusMessage = "연속 캡처를 저장했어요") {
+  clearInterval(sequenceTimer);
+  sequenceTimer = null;
+  sequenceRunning = false;
+  renderSequence();
+  if (!sequenceFrames.length) {
+    ui.status.textContent = "저장할 캡처 이미지가 없어요";
+    return;
+  }
+  ui.sequence.disabled = true;
+  try {
+    const zip = window.createZipBlob(sequenceFrames);
+    const url = URL.createObjectURL(zip);
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    await chrome.downloads.download({
+      url,
+      filename: `page-canvas/page-canvas-sequence-${stamp}.zip`,
+      saveAs: false
+    });
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    ui.status.textContent = statusMessage;
+    sequenceFrames = [];
+    renderSequence();
+  } catch {
+    ui.status.textContent = "연속 캡처 ZIP을 저장하지 못했어요";
+  } finally {
+    ui.sequence.disabled = false;
+  }
+}
 
 function isBlocked(url = "") {
   return /^(chrome|edge|about|devtools):/.test(url) || url.startsWith("https://chromewebstore.google.com/");
@@ -137,6 +216,10 @@ ui.save.addEventListener("click", async () => {
     }, 2200);
   }
 });
+ui.sequence.addEventListener("click", async () => {
+  if (sequenceRunning) await stopSequenceCapture();
+  else await startSequenceCapture();
+});
 ui.clear.addEventListener("click", async () => {
   await page({ type: "CLEAR" });
 });
@@ -148,7 +231,10 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
-chrome.tabs.onActivated.addListener(() => initialize());
+chrome.tabs.onActivated.addListener(async () => {
+  if (sequenceRunning) await stopSequenceCapture("탭이 변경되어 캡처를 종료했어요");
+  initialize();
+});
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (tabId === tab?.id && changeInfo.status === "complete") initialize();
 });

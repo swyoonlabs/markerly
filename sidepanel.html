@@ -61,6 +61,16 @@
             <span class="check-copy"><strong>오른쪽 클릭으로 모두 지우기</strong><small>그리기 화면을 빠르게 초기화합니다.</small></span>
           </label>
           <button id="save" class="save" type="button"><span>↓</span> 현재 화면 저장</button>
+          <div class="sequence-row">
+            <label for="captureInterval">연속 캡처 간격</label>
+            <select id="captureInterval">
+              <option value="1000">1초</option>
+              <option value="3000" selected>3초</option>
+              <option value="5000">5초</option>
+            </select>
+          </div>
+          <button id="sequence" class="sequence" type="button"><span class="sequence-dot"></span><span id="sequenceLabel">연속 캡처 시작</span><output id="sequenceCount">0장</output></button>
+          <p class="sequence-help">종료하면 ZIP 하나로 저장됩니다. 캡처 중에는 사이드 패널을 열어두세요.</p>
           <button id="clear" class="clear" type="button">화면의 그림 모두 지우기</button>
         </section>
 
@@ -69,6 +79,7 @@
 
       <footer><span id="statusDot"></span><p id="status">캔버스 꺼짐</p></footer>
     </main>
+    <script src="zip.js"></script>
     <script src="sidepanel.js"></script>
   </body>
 </html>
