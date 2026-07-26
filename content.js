@@ -1,10 +1,12 @@
 (() => {
   const CANVAS_ID = "markerly-canvas-overlay";
+  const FAB_ID = "markerly-fab";
   const LEGACY_CANVAS_ID = "page-canvas-overlay-extension";
   const LEGACY_BADGE_ID = "page-canvas-overlay-badge";
   document.getElementById(LEGACY_CANVAS_ID)?.remove();
   document.getElementById(CANVAS_ID)?.remove();
   document.getElementById(LEGACY_BADGE_ID)?.remove();
+  let fab;
 
   let canvas;
   let context;
@@ -122,6 +124,7 @@
     window.addEventListener("resize", resizeCanvas);
     applyMode();
     resizeCanvas();
+    createFab();
   }
 
   function removeOverlay() {
@@ -131,6 +134,7 @@
     context = null;
     drawing = false;
     currentStroke = null;
+    removeFab();
   }
 
   function applyMode() {
@@ -138,6 +142,7 @@
     const canDraw = state.mode === "draw";
     canvas.style.pointerEvents = canDraw ? "auto" : "none";
     canvas.style.cursor = tool.tool === "eraser" ? ERASER_CURSOR : tool.tool === "text" ? "text" : PEN_CURSOR;
+    updateFab();
   }
 
   function applyState(nextState) {
@@ -145,6 +150,91 @@
     if (state.enabled) createOverlay();
     else removeOverlay();
     applyMode();
+  }
+
+  // Floating Action Button: a small draggable toggle shown on the page when the
+  // canvas is on. Lets the user switch between Draw and Page modes (and reopen
+  // the side panel) without the side panel being open.
+  function createFab() {
+    if (fab) return;
+    fab = document.createElement("div");
+    fab.id = FAB_ID;
+    Object.assign(fab.style, {
+      position: "fixed",
+      bottom: "24px",
+      right: "24px",
+      width: "44px",
+      height: "44px",
+      borderRadius: "50%",
+      background: state.mode === "draw" ? "#7c5cff" : "#2ecc71",
+      boxShadow: "0 4px 14px rgba(0,0,0,.25)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      userSelect: "none",
+      zIndex: "2147483647",
+      fontSize: "20px",
+      color: "#fff",
+      lineHeight: "1",
+      transition: "background .15s ease, transform .1s ease"
+    });
+    fab.title = state.mode === "draw"
+      ? (chrome.i18n.getMessage("pageControl") || "Page mode")
+      : (chrome.i18n.getMessage("draw") || "Draw mode");
+
+    // Click: toggle between draw and navigate modes.
+    let dragMoved = false;
+    let dragStart = null;
+    fab.addEventListener("pointerdown", (e) => {
+      dragMoved = false;
+      dragStart = { x: e.clientX, y: e.clientY };
+      fab.setPointerCapture(e.pointerId);
+      e.stopPropagation();
+    });
+    fab.addEventListener("pointermove", (e) => {
+      if (!dragStart) return;
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragMoved = true;
+      if (dragMoved) {
+        fab.style.right = "auto";
+        fab.style.bottom = "auto";
+        fab.style.left = `${e.clientX - 22}px`;
+        fab.style.top = `${e.clientY - 22}px`;
+      }
+      e.stopPropagation();
+    });
+    fab.addEventListener("pointerup", (e) => {
+      if (fab.hasPointerCapture(e.pointerId)) fab.releasePointerCapture(e.pointerId);
+      if (!dragMoved) toggleModeFromFab();
+      dragStart = null;
+      e.stopPropagation();
+    });
+
+    document.documentElement.appendChild(fab);
+    updateFab();
+  }
+
+  function removeFab() {
+    fab?.remove();
+    fab = null;
+  }
+
+  function updateFab() {
+    if (!fab) return;
+    fab.textContent = state.mode === "draw" ? "✎" : "↗";
+    fab.style.background = state.mode === "draw" ? "#7c5cff" : "#2ecc71";
+    fab.title = state.mode === "draw"
+      ? (chrome.i18n.getMessage("pageControl") || "Page mode")
+      : (chrome.i18n.getMessage("draw") || "Draw mode");
+  }
+
+  function toggleModeFromFab() {
+    const nextMode = state.mode === "draw" ? "navigate" : "draw";
+    state = { ...state, mode: nextMode };
+    applyMode();
+    send({ type: "SET_TAB_STATE", patch: { mode: nextMode } });
   }
 
   function point(event) {

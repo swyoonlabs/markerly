@@ -196,19 +196,6 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
-// When the side panel is closed (user clicks X), switch to Page mode so the
-// canvas overlay stops intercepting pointer events. Drawings remain visible;
-// only interaction is handed back to the page. This prevents the "stuck in
-// draw mode with no panel to toggle it off" issue.
-window.addEventListener("pagehide", () => {
-  if (!state.enabled || state.mode !== "draw") return;
-  const navState = { ...state, mode: "navigate" };
-  // Fire and forget — the panel context is about to be torn down.
-  chrome.runtime.sendMessage({ type: "SET_TAB_STATE", tabId: tab?.id, patch: { mode: "navigate" } }).catch(() => {});
-  if (tab?.id) chrome.tabs.sendMessage(tab.id, { type: "APPLY_STATE", state: navState }).catch(() => {});
-  state.mode = "navigate";
-});
-
 chrome.tabs.onActivated.addListener(async () => {
   if (sequenceRunning) await stopSequenceCapture(t("tabChanged"));
   initialize();
