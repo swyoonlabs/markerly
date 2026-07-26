@@ -27,84 +27,30 @@ let tool = {
   opacity: 1, rightClickClear: true
 };
 let sequenceRunning = false;
-let sequenceFrames = [];
-let sequenceTimer = null;
-let sequenceCapturing = false;
-const MAX_SEQUENCE_FRAMES = 10;
-const MAX_SEQUENCE_BYTES = 200 * 1024 * 1024;
+let sequenceFrames = 0;
 
 function renderSequence() {
   ui.sequence.classList.toggle("running", sequenceRunning);
   ui.sequenceLabel.textContent = t(sequenceRunning ? "stopSequence" : "startSequence");
-  ui.sequenceCount.value = t("captureCount", String(sequenceFrames.length));
+  ui.sequenceCount.value = t("captureCount", String(sequenceFrames));
   ui.captureInterval.disabled = sequenceRunning;
 }
 
-async function captureSequenceFrame() {
-  if (!sequenceRunning || sequenceCapturing || !tab?.windowId) return;
-  sequenceCapturing = true;
-  try {
-    const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
-      format: "jpeg",
-      quality: 90
-    });
-    const bytes = new Uint8Array(await (await fetch(dataUrl)).arrayBuffer());
-    const totalBytes = sequenceFrames.reduce((total, frame) => total + frame.bytes.length, 0);
-    if (sequenceFrames.length >= MAX_SEQUENCE_FRAMES || totalBytes + bytes.length > MAX_SEQUENCE_BYTES) {
-      await stopSequenceCapture(t("sequenceLimitReached"));
-      return;
-    }
-    const index = String(sequenceFrames.length + 1).padStart(4, "0");
-    sequenceFrames.push({ name: `capture-${index}.jpg`, bytes, date: new Date() });
-    renderSequence();
-    if (sequenceFrames.length >= MAX_SEQUENCE_FRAMES) {
-      await stopSequenceCapture(t("sequenceLimitReached"));
-    }
-  } catch {
-    await stopSequenceCapture(t("sequenceInterrupted"));
-  } finally {
-    sequenceCapturing = false;
-  }
-}
-
 async function startSequenceCapture() {
-  sequenceFrames = [];
+  if (!tab?.id || !tab?.windowId) return;
   sequenceRunning = true;
+  sequenceFrames = 0;
   renderSequence();
-  await captureSequenceFrame();
-  if (!sequenceRunning) return;
-  sequenceTimer = setInterval(captureSequenceFrame, Number(ui.captureInterval.value));
   ui.status.textContent = t("sequenceCapturing");
+  await background({ type: "SEQUENCE_START", windowId: tab.windowId, intervalMs: Number(ui.captureInterval.value) });
 }
 
 async function stopSequenceCapture(statusMessage = t("sequenceSaved")) {
-  clearInterval(sequenceTimer);
-  sequenceTimer = null;
   sequenceRunning = false;
+  sequenceFrames = 0;
   renderSequence();
-  if (!sequenceFrames.length) {
-    ui.status.textContent = t("noCaptures");
-    return;
-  }
-  ui.sequence.disabled = true;
-  try {
-    const zip = window.createZipBlob(sequenceFrames);
-    const url = URL.createObjectURL(zip);
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    await chrome.downloads.download({
-      url,
-      filename: `markerly/markerly-sequence-${stamp}.zip`,
-      saveAs: false
-    });
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    ui.status.textContent = statusMessage;
-    sequenceFrames = [];
-    renderSequence();
-  } catch {
-    ui.status.textContent = t("sequenceSaveFailed");
-  } finally {
-    ui.sequence.disabled = false;
-  }
+  await background({ type: "SEQUENCE_STOP" });
+  ui.status.textContent = statusMessage;
 }
 
 function isBlocked(url = "") {
@@ -242,6 +188,12 @@ chrome.runtime.onMessage.addListener((message) => {
     state = { ...state, ...message.patch };
     render();
   }
+  if (message.type === "SEQUENCE_STATUS") {
+    sequenceRunning = !!message.running;
+    if (typeof message.frames === "number") sequenceFrames = message.frames;
+    renderSequence();
+    if (message.statusMessage) ui.status.textContent = message.statusMessage;
+  }
 });
 
 chrome.tabs.onActivated.addListener(async () => {
@@ -265,6 +217,14 @@ async function initialize() {
   }
   render();
   if (state.enabled) await page({ type: "APPLY_STATE", state });
+  // Sync sequence capture status from background (in case it is running with the panel closed).
+  const seq = await background({ type: "SEQUENCE_STATUS" });
+  if (seq?.ok) {
+    sequenceRunning = !!seq.running;
+    sequenceFrames = seq.frames ?? 0;
+    renderSequence();
+    if (sequenceRunning) ui.status.textContent = t("sequenceCapturing");
+  }
 }
 
 localizeDocument();

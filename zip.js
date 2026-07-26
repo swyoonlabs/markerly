@@ -27,7 +27,7 @@
     return { bytes, data: new DataView(bytes.buffer) };
   }
 
-  window.createZipBlob = function createZipBlob(files) {
+  globalThis.createZipBlob = function createZipBlob(files) {
     const encoder = new TextEncoder();
     const localParts = [];
     const centralParts = [];
