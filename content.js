@@ -1,5 +1,5 @@
 (() => {
-  const CANVAS_ID = "annotap-canvas-overlay";
+  const CANVAS_ID = "markerly-canvas-overlay";
   const LEGACY_CANVAS_ID = "page-canvas-overlay-extension";
   const LEGACY_BADGE_ID = "page-canvas-overlay-badge";
   document.getElementById(LEGACY_CANVAS_ID)?.remove();
@@ -263,10 +263,11 @@
   }
 
   function createTextEditor(position) {
+    document.getElementById("markerly-text-editor")?.remove();
     document.getElementById("annotap-text-editor")?.remove();
     document.getElementById("page-canvas-text-editor")?.remove();
     const editor = document.createElement("textarea");
-    editor.id = "annotap-text-editor";
+    editor.id = "markerly-text-editor";
     editor.rows = 1;
     editor.placeholder = chrome.i18n.getMessage("textPlaceholder") || "Type your text";
     Object.assign(editor.style, {

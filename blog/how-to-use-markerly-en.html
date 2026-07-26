@@ -1,0 +1,571 @@
+<![CDATA[<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How to Use Markerly — Draw on any webpage and capture it instantly</title>
+<meta name="description" content="Markerly is a Chrome extension that overlays a transparent canvas on webpages so you can annotate, mark up, and capture screens. Here's a full walkthrough from install to sequence capture." />
+<style>
+  :root {
+    --bg: #0f1115;
+    --bg-soft: #161a22;
+    --card: #1b2030;
+    --card-2: #20263a;
+    --border: #2a3147;
+    --text: #e7eaf2;
+    --text-soft: #aab2c5;
+    --text-mute: #8a92a8;
+    --accent: #ff5a7a;
+    --accent-2: #7c5cff;
+    --accent-3: #25d6c2;
+    --code-bg: #11141c;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: radial-gradient(1200px 600px at 80% -10%, rgba(124, 92, 255, 0.18), transparent 60%),
+                radial-gradient(900px 500px at 0% 0%, rgba(255, 90, 122, 0.15), transparent 55%),
+                var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent-3); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 72px 0 40px;
+    text-align: center;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--bg-soft);
+    margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 44px);
+    line-height: 1.25;
+    margin: 0 0 14px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #ffffff, #c9cfee 60%, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero .lead {
+    font-size: clamp(16px, 2.2vw, 19px);
+    color: var(--text-soft);
+    max-width: 640px;
+    margin: 0 auto 18px;
+  }
+  .hero .slogan {
+    display: inline-block;
+    font-weight: 700;
+    color: var(--text);
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+  }
+  .cta-row {
+    margin-top: 26px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .lang-switch {
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--text-mute);
+  }
+  .lang-switch a { color: var(--text-soft); }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-primary {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: #fff;
+    box-shadow: var(--shadow);
+  }
+  .btn-primary:hover { text-decoration: none; transform: translateY(-2px); }
+  .btn-ghost {
+    border: 1px solid var(--border);
+    color: var(--text);
+    background: var(--bg-soft);
+  }
+  .btn-ghost:hover { text-decoration: none; border-color: var(--accent-3); }
+
+  /* META */
+  .meta {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    color: var(--text-mute);
+    font-size: 14px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .meta span::before { content: "·"; margin-right: 12px; color: var(--border); }
+  .meta span:first-child::before { content: ""; margin: 0; }
+
+  /* SECTION */
+  section { padding: 36px 0; }
+  h2 {
+    font-size: clamp(22px, 3.5vw, 28px);
+    margin: 0 0 8px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  h3 {
+    font-size: 18px;
+    margin: 22px 0 8px;
+    color: var(--text);
+    font-weight: 700;
+  }
+  p { color: var(--text-soft); margin: 10px 0; }
+
+  /* CARDS */
+  .grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin: 18px 0;
+  }
+  .card {
+    background: linear-gradient(180deg, var(--card), var(--card-2));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .card .ico { font-size: 22px; margin-bottom: 8px; }
+  .card h4 { margin: 0 0 6px; font-size: 15px; }
+  .card p { margin: 0; font-size: 14px; color: var(--text-mute); }
+
+  /* STEPS */
+  ol.steps {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+  }
+  ol.steps li {
+    position: relative;
+    padding: 14px 16px 14px 54px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+  ol.steps li::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--accent-2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+  }
+  ol.steps li strong { color: var(--text); }
+  ol.steps li code { color: var(--accent-3); }
+
+  /* IMAGE */
+  figure {
+    margin: 22px 0;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--card);
+    box-shadow: var(--shadow);
+  }
+  figure img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    background: #0b0d13;
+  }
+  figcaption {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text-mute);
+    border-top: 1px solid var(--border);
+    background: var(--bg-soft);
+  }
+
+  /* CODE */
+  code, pre {
+    font-family: "JetBrains Mono", "Consolas", "Monaco", monospace;
+  }
+  :not(pre) > code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    color: var(--accent-3);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 16px;
+    border-radius: 12px;
+    overflow-x: auto;
+    color: var(--text-soft);
+    font-size: 13.5px;
+  }
+
+  /* CALLOUT */
+  .callout {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    margin: 18px 0;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+  }
+  .callout.tip { border-left: 4px solid var(--accent-3); }
+  .callout.warn { border-left: 4px solid var(--accent); }
+  .callout .ic { font-size: 18px; flex-shrink: 0; }
+  .callout .body p { margin: 0; color: var(--text-soft); font-size: 14.5px; }
+  .callout .body strong { color: var(--text); }
+
+  /* TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  th { background: var(--bg-soft); color: var(--text); }
+  td { color: var(--text-soft); }
+  tr:last-child td { border-bottom: none; }
+
+  /* TAG LIST */
+  .tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 8px 0 0;
+  }
+  .tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text-mute);
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 40px 0 60px;
+    color: var(--text-mute);
+    font-size: 14px;
+    border-top: 1px solid var(--border);
+    margin-top: 30px;
+  }
+  footer a { color: var(--text-soft); }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 10px 0;
+  }
+
+  @media (max-width: 600px) {
+    .hero { padding: 48px 0 24px; }
+    section { padding: 28px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="badge">Chrome Extension · User Guide</span>
+    <h1>Draw on any webpage,<br>capture it instantly</h1>
+    <p class="lead">Markerly overlays a transparent canvas on the page you're viewing so you can annotate, mark up, and save screenshots — all from a side panel.</p>
+    <div class="slogan">Mark. Highlight. Capture.</div>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/swyoonlabs/markerly" target="_blank" rel="noopener">Open repository →</a>
+      <a class="btn btn-ghost" href="#install">See installation</a>
+    </div>
+    <div class="lang-switch">🌍 <a href="how-to-use-markerly.html">한국어 버전 보기</a></div>
+    <div class="meta">
+      <span>Version 0.1.0</span>
+      <span>Manifest V3</span>
+      <span>English / 한국어</span>
+      <span>Local-only · No data sent</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- WHAT -->
+  <section id="what">
+    <h2><span class="num">1</span> What is Markerly?</h2>
+    <p>Whenever you need to point something out or explain something on a webpage, Markerly places a transparent canvas on top of the page. Pick a tool from the side panel and draw freehand or drop text right on the page. Your annotations are composited with the page background into a single PNG, and if you need a sequence, Markerly can auto-capture up to 10 frames at 3/5/10-second intervals and bundle them into a ZIP.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="ico">🎨</div>
+        <h4>Draw & erase freely</h4>
+        <p>Adjust pen color, thickness, and opacity — eraser has its own size</p>
+      </div>
+      <div class="card">
+        <div class="ico">✍️</div>
+        <h4>Add & move text</h4>
+        <p>Click to place text, then drag it anywhere on the page</p>
+      </div>
+      <div class="card">
+        <div class="ico">🖱️</div>
+        <h4>Page control mode</h4>
+        <p>Switch to Page mode when you need to play a video or scroll</p>
+      </div>
+      <div class="card">
+        <div class="ico">📦</div>
+        <h4>Save in one go</h4>
+        <p>Export a single PNG, or up to 10 sequence captures as a ZIP</p>
+      </div>
+    </div>
+
+    <h3>Who is it for?</h3>
+    <div class="tags">
+      <span class="tag">Code review</span>
+      <span class="tag">Bug reports</span>
+      <span class="tag">Tutorial content</span>
+      <span class="tag">Design feedback</span>
+      <span class="tag">Screen-share prep</span>
+      <span class="tag">QA & testing</span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- INSTALL -->
+  <section id="install">
+    <h2><span class="num">2</span> Installation</h2>
+    <p>Markerly can be loaded directly in Chrome's developer mode. Follow these steps:</p>
+
+    <ol class="steps">
+      <li>Open <code>chrome://extensions</code> in your address bar.</li>
+      <li>Turn on <strong>Developer mode</strong> in the top-right corner.</li>
+      <li>Click <strong>Load unpacked</strong>.</li>
+      <li>Select the <strong>Markerly project folder</strong> you downloaded.</li>
+      <li>Click the Markerly icon in the toolbar to open the <strong>side panel</strong>.</li>
+    </ol>
+
+    <div class="callout tip">
+      <span class="ic">💡</span>
+      <div class="body">
+        <p><strong>Updated the code?</strong> Click the <strong>Refresh</strong> button on the Markerly card at <code>chrome://extensions</code> to apply your changes instantly.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- BASIC USAGE -->
+  <section id="usage">
+    <h2><span class="num">3</span> Core usage</h2>
+
+    <h3>3-1. Open the side panel & turn on the canvas</h3>
+    <p>Click the Markerly icon in the toolbar to open the side panel. Use the toggle in the top-right to enable the <strong>canvas for the current tab</strong>. The canvas works independently per tab, and on the same tab + URL your drawings are automatically restored even after a refresh.</p>
+
+    <figure>
+      <img src="../screenshots/markerly-panel.png" alt="Markerly side panel interface" loading="lazy" />
+      <figcaption>The side panel handles canvas toggle, tools, colors, thickness, and saving — all in one place.</figcaption>
+    </figure>
+
+    <h3>3-2. Choose a tool</h3>
+    <p>In the <strong>"Choose a tool"</strong> section of the side panel, pick one of four actions.</p>
+
+    <table>
+      <thead>
+        <tr><th>Tool</th><th>What it does</th><th>Best for</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Draw</strong></td><td>Draw freehand lines with the pen</td><td>Highlights, arrows, circles</td></tr>
+        <tr><td><strong>Erase</strong></td><td>Erase with an independent eraser size</td><td>Partial edits, removing stray lines</td></tr>
+        <tr><td><strong>Text</strong></td><td>Click to place text, drag to reposition</td><td>Explanatory labels, numbering</td></tr>
+        <tr><td><strong>Page</strong></td><td>Disable the canvas and interact with the page</td><td>Playing videos, scrolling, clicking links</td></tr>
+      </tbody>
+    </table>
+
+    <figure>
+      <img src="../screenshots/markerly-1-draw.png" alt="Drawing pen annotations on a webpage" loading="lazy" />
+      <figcaption>Draw mode — 5 colors (Pink · Orange · Green · Blue · Black) with adjustable thickness and opacity.</figcaption>
+    </figure>
+
+    <figure>
+      <img src="../screenshots/markerly-2-text.png" alt="Adding and moving text on a webpage" loading="lazy" />
+      <figcaption>Text mode — click anywhere to type, then drag the text to reposition it freely.</figcaption>
+    </figure>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SAVE -->
+  <section id="save">
+    <h2><span class="num">4</span> Capturing the screen</h2>
+
+    <h3>Save the current view as PNG</h3>
+    <p>Click <strong>Save current view</strong> to export a single <strong>PNG image</strong> that combines the visible webpage with your annotations. It's saved directly to your Downloads folder — no external servers involved.</p>
+
+    <figure>
+      <img src="../screenshots/markerly-3-save.png" alt="Saving an annotated screen as PNG" loading="lazy" />
+      <figcaption>One click — and your page + annotations become a single PNG.</figcaption>
+    </figure>
+
+    <h3>Sequence capture as ZIP</h3>
+    <p>Want to record a step-by-step change? Use sequence capture. Pick an interval — <strong>3, 5, or 10 seconds</strong> — then click <strong>Start sequence capture</strong>. Markerly will automatically snap up to 10 frames and bundle them into a single <strong>ZIP file</strong>.</p>
+
+    <div class="callout tip">
+      <span class="ic">📸</span>
+      <div class="body">
+        <p><strong>During sequence capture</strong> — keep the side panel open. If you switch tabs or close the panel, capture stops automatically and saves the images captured so far.</p>
+      </div>
+    </div>
+
+    <figure>
+      <img src="../screenshots/markerly-4-sequence.png" alt="Sequence capture saving multiple images as ZIP" loading="lazy" />
+      <figcaption>Sequence capture — auto-saves at 10 frames, and bundles everything captured so far into a ZIP if interrupted.</figcaption>
+    </figure>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- TIPS -->
+  <section id="tips">
+    <h2><span class="num">5</span> Tips & limitations</h2>
+
+    <h3>Handy tips</h3>
+
+    <div class="callout tip">
+      <span class="ic">⚡</span>
+      <div class="body">
+        <p><strong>Clear all with right-click</strong> — turn on "Clear all with right-click" in the side panel, then right-click anywhere on the canvas to instantly reset your drawings.</p>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="ic">🔁</span>
+      <div class="body">
+        <p><strong>Drawings survive a refresh</strong> — on the same tab and URL, your annotations are automatically restored after a page reload. Closing the tab, however, clears the session data.</p>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="ic">📁</span>
+      <div class="body">
+        <p><strong>Works on local HTML files too</strong> — to use Markerly on <code>file://</code> pages, enable <strong>Allow access to file URLs</strong> in the extension's details.</p>
+      </div>
+    </div>
+
+    <h3>Pages where it won't run</h3>
+    <div class="callout warn">
+      <span class="ic">🚫</span>
+      <div class="body">
+        <p><strong>Chrome internal pages</strong> (<code>chrome://...</code>) and the <strong>Chrome Web Store</strong> are blocked by browser security policy. Please use Markerly on regular webpages.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- PRIVACY -->
+  <section id="privacy">
+    <h2><span class="num">6</span> Privacy</h2>
+    <p>Markerly is a <strong>local-only</strong> tool. Drawing data stays in the browser session, and captured images are saved directly to your device — never sent to an external server. Capture only runs when you explicitly press a button.</p>
+
+    <table>
+      <thead>
+        <tr><th>Item</th><th>How it's handled</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Drawing data</td><td>Browser session storage (deleted when tab closes)</td></tr>
+        <tr><td>Captured images</td><td>Saved directly to your Downloads folder</td></tr>
+        <tr><td>External server transfer</td><td>None</td></tr>
+        <tr><td>Ads & third-party tracking</td><td>None</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Markerly</strong> · Mark. Highlight. Capture.</p>
+    <p>Source code and latest releases are on <a href="https://github.com/swyoonlabs/markerly" target="_blank" rel="noopener">GitHub</a>.</p>
+  </div>
+</footer>
+
+</body>
+</html>
+]]>

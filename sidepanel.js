@@ -93,7 +93,7 @@ async function stopSequenceCapture(statusMessage = t("sequenceSaved")) {
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     await chrome.downloads.download({
       url,
-      filename: `annotap/annotap-sequence-${stamp}.zip`,
+      filename: `markerly/markerly-sequence-${stamp}.zip`,
       saveAs: false
     });
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -214,7 +214,7 @@ ui.save.addEventListener("click", async () => {
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     await chrome.downloads.download({
       url: dataUrl,
-      filename: `annotap/annotap-${stamp}.png`,
+      filename: `markerly/markerly-${stamp}.png`,
       saveAs: false
     });
     ui.statusDot.classList.add("saved");

@@ -10,3 +10,12 @@ Thumbs.db
 # Dependencies and logs
 node_modules/
 *.log
+
+# Blogger OAuth secrets / generated files
+tools/client_secret.json
+tools/token.json
+tools/preview-*.html
+
+# Python cache
+__pycache__/
+*.pyc

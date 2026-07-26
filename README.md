@@ -1,8 +1,8 @@
-# Annotap
+# Markerly
 
-Annotap은 웹페이지 위에 투명 캔버스를 띄워 메모하고 표시할 수 있는 Chrome Manifest V3 확장 프로그램입니다.
+Markerly는 웹페이지 위에 투명 캔버스를 띄워 밑줄·강조·메모를 표시할 수 있는 Chrome Manifest V3 확장 프로그램입니다.
 
-> Tap. Mark. Capture.
+> Mark. Highlight. Capture.
 
 ## 기능
 
@@ -43,11 +43,42 @@ Chrome 내부 페이지(`chrome://...`)와 Chrome 웹 스토어에서는 보안 
 ## 저장소 구조
 
 - 루트: 확장 프로그램 런타임 파일
-- `icons/`: Manifest 및 스토어 아이콘
+- `icons/`: Manifest 및 스토어 아이콘(`icon.svg`가 원본)
 - `_locales/`: Chrome 확장 프로그램 영어·한국어 번역
 - `screenshots/`: Chrome Web Store 스크린샷
 - `scripts/`: 배포 패키지 생성 도구
-- `store-assets/`: 스토어 설명, 권한 설명, 개인정보처리방침
+- `store-assets/`: 스토어 설명, 권한 설명, 개인정보처리방침, 스토어 아이콘·프로모 타일
+- `tools/`: 아이콘·스토어 이미지 자동 생성 도구
 - `dist/`: Chrome Web Store 업로드 및 GitHub 배포용 ZIP
 
 스토어 업로드 ZIP은 PowerShell에서 `./scripts/package-extension.ps1`을 실행해 생성합니다.
+
+## 이미지 자동 생성
+
+아이콘과 스토어 이미지는 Python 스크립트로 다시 만들 수 있습니다. Google Chrome과
+Pillow(`pip install pillow`)가 필요합니다.
+
+```powershell
+python tools/make_icons.py          # icons/icon.svg -> icon16/32/48/128.png
+python tools/make_store_assets.py   # 세로 패널·1280x800 스크린샷·스토어 아이콘·프로모 타일
+```
+
+- `tools/make_icons.py`: `icons/icon.svg`를 고해상도로 래스터화 후 축소해 PNG 아이콘 생성
+- `tools/make_store_assets.py`: 헤드리스 Chrome으로 실제 사이드 패널을 렌더링하고
+  브라우저 목업·주석·카피와 합성해 `screenshots/`와 `store-assets/` 이미지 생성
+
+Chrome 설치 경로가 다르면 `CHROME` 환경 변수로 실행 파일을 지정하세요.
+
+## 블로그 자동 게시 (Blogger API)
+
+`blog/` 의 KO/EN 가이드 글을 Blogger에 자동으로 게시·갱신할 수 있습니다.
+
+```powershell
+python tools/publish_blog.py --dry-run   # 본문 추출만 미리보기(API 호출 없음)
+python tools/publish_blog.py --draft     # 초안으로 게시/갱신
+python tools/publish_blog.py             # 공개로 게시/갱신(upsert)
+```
+
+- 신규 글은 만들고 반환된 post ID를 `tools/blog-config.json` 에 저장해, 다음 실행부터 자동 갱신합니다.
+- 글 작성·수정은 OAuth2 사용자 인증이 필요합니다. 최초 1회 설정은 [tools/BLOGGER-SETUP.md](tools/BLOGGER-SETUP.md) 참고.
+- OAuth 비밀 파일(`tools/client_secret.json`, `tools/token.json`)은 `.gitignore`에 등록되어 있습니다.

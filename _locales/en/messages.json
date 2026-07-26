@@ -1,10 +1,10 @@
 {
-  "extensionName": { "message": "Annotap" },
+  "extensionName": { "message": "Markerly" },
   "extensionDescription": { "message": "Draw, erase, add text, and capture any webpage from a convenient side panel." },
-  "extensionActionTitle": { "message": "Open Annotap" },
+  "extensionActionTitle": { "message": "Open Markerly" },
   "currentPage": { "message": "Current page" },
   "toggleCanvas": { "message": "Toggle canvas" },
-  "blockedTitle": { "message": "Annotap cannot run on this page" },
+  "blockedTitle": { "message": "Markerly cannot run on this page" },
   "blockedDescription": { "message": "Open a regular webpage and try again." },
   "chooseTool": { "message": "Choose a tool" },
   "draw": { "message": "Draw" }, "erase": { "message": "Erase" }, "textTool": { "message": "Text" }, "pageTool": { "message": "Page" },

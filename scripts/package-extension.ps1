@@ -4,8 +4,8 @@ $root = Split-Path -Parent $PSScriptRoot
 $manifest = Get-Content (Join-Path $root "manifest.json") -Raw | ConvertFrom-Json
 $version = $manifest.version
 $dist = Join-Path $root "dist"
-$stage = Join-Path $dist "annotap"
-$archive = Join-Path $dist "annotap-$version.zip"
+$stage = Join-Path $dist "markerly"
+$archive = Join-Path $dist "markerly-$version.zip"
 
 if (Test-Path $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
 if (Test-Path $archive) { Remove-Item -LiteralPath $archive -Force }

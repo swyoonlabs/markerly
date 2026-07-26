@@ -1,7 +1,7 @@
 {
-  "extensionName": { "message": "Annotap" },
+  "extensionName": { "message": "Markerly" },
   "extensionDescription": { "message": "편리한 사이드 패널에서 웹페이지에 그림과 글자를 추가하고 화면을 저장하세요." },
-  "extensionActionTitle": { "message": "Annotap 열기" },
+  "extensionActionTitle": { "message": "Markerly 열기" },
   "currentPage": { "message": "현재 페이지" }, "toggleCanvas": { "message": "캔버스 켜기 또는 끄기" },
   "blockedTitle": { "message": "이 페이지에서는 사용할 수 없어요" }, "blockedDescription": { "message": "일반 웹페이지를 열고 다시 시도하세요." },
   "chooseTool": { "message": "무엇을 할까요?" }, "draw": { "message": "그리기" }, "erase": { "message": "지우기" }, "textTool": { "message": "글자" }, "pageTool": { "message": "페이지" },

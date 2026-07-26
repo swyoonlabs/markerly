@@ -1,0 +1,17 @@
+{
+  "blogUrl": "https://YOUR-BLOG.blogspot.com",
+  "blogId": "",
+  "assetBaseUrl": "",
+  "posts": [
+    {
+      "file": "blog/how-to-use-markerly.html",
+      "postId": "",
+      "labels": ["Markerly", "Chrome 확장", "사용법"]
+    },
+    {
+      "file": "blog/how-to-use-markerly-en.html",
+      "postId": "",
+      "labels": ["Markerly", "Chrome Extension", "Guide"]
+    }
+  ]
+}
