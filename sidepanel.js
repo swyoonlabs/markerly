@@ -23,8 +23,8 @@ const ui = {
 let tab = null;
 let state = { enabled: false, mode: "draw" };
 let tool = {
-  tool: "pen", color: "#ff4d6d", penSize: 37, eraserSize: 28, textSize: 28,
-  opacity: 0.55, rightClickClear: true
+  tool: "pen", color: "#ff4d6d", penSize: 32, eraserSize: 28, textSize: 28,
+  opacity: 0.5, rightClickClear: true
 };
 let sequenceRunning = false;
 let sequenceFrames = 0;
