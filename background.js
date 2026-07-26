@@ -3,10 +3,10 @@ importScripts("zip.js");
 const DEFAULT_TOOL = {
   tool: "pen",
   color: "#ff4d6d",
-  penSize: 6,
+  penSize: 37,
   eraserSize: 28,
   textSize: 28,
-  opacity: 1,
+  opacity: 0.55,
   rightClickClear: true
 };
 

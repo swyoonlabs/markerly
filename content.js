@@ -16,8 +16,8 @@
   let strokes = [];
   let state = { enabled: false, mode: "draw" };
   let tool = {
-    tool: "pen", color: "#ff4d6d", penSize: 6, eraserSize: 28, textSize: 28,
-    opacity: 1, rightClickClear: true
+    tool: "pen", color: "#ff4d6d", penSize: 37, eraserSize: 28, textSize: 28,
+    opacity: 0.55, rightClickClear: true
   };
   const PEN_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
