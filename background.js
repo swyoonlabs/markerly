@@ -44,12 +44,21 @@ const MAX_SEQUENCE_FRAMES = 10;
 const MAX_SEQUENCE_BYTES = 200 * 1024 * 1024;
 const sequence = { tabId: null, windowId: null, frames: [], timer: null, running: false, capturing: false };
 
-function setBadge(tabId, capturing) {
+async function refreshBadge(tabId) {
+  if (!tabId) return;
   try {
-    if (capturing) {
+    // Priority: sequence capture (REC) > canvas on (ON) > nothing.
+    if (sequence.running && sequence.tabId === tabId) {
       chrome.action.setBadgeText({ text: "REC", tabId });
       chrome.action.setBadgeBackgroundColor({ color: "#df3652", tabId });
-      chrome.action.setTitle({ title: chrome.i18n.getMessage("sequenceCapturing") || "Sequence capture in progress", tabId });
+      chrome.action.setTitle({ title: chrome.i18n.getMessage("sequenceCapturing") || "Sequence capture in progress · Click to open panel", tabId });
+      return;
+    }
+    const { enabled } = await getTabState(tabId);
+    if (enabled) {
+      chrome.action.setBadgeText({ text: "ON", tabId });
+      chrome.action.setBadgeBackgroundColor({ color: "#7c5cff", tabId });
+      chrome.action.setTitle({ title: chrome.i18n.getMessage("extensionActionTitle") || "Open Markerly", tabId });
     } else {
       chrome.action.setBadgeText({ text: "", tabId });
       chrome.action.setTitle({ title: chrome.i18n.getMessage("extensionActionTitle") || "Open Markerly", tabId });
@@ -90,7 +99,7 @@ async function startSequenceCapture(tabId, windowId) {
   sequence.windowId = windowId;
   sequence.frames = [];
   sequence.running = true;
-  setBadge(tabId, true);
+  await refreshBadge(tabId);
   broadcast({ running: true, frames: 0 });
   await captureSequenceFrame();
   if (!sequence.running) return;
@@ -103,7 +112,7 @@ async function stopSequenceCapture(statusMessage) {
   const tabId = sequence.tabId;
   const frames = sequence.frames;
   sequence.frames = [];
-  setBadge(tabId, false);
+  await refreshBadge(tabId);
   broadcast({ running: false, frames: frames.length, statusMessage });
 
   if (!frames.length) {
@@ -153,9 +162,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case "GET_TAB_STATE":
         sendResponse({ ok: true, state: await getTabState(tabId), tool: await getTool() });
         break;
-      case "SET_TAB_STATE":
-        sendResponse({ ok: true, state: await setTabState(tabId, message.patch) });
+      case "SET_TAB_STATE": {
+        const newState = await setTabState(tabId, message.patch);
+        if (Object.prototype.hasOwnProperty.call(message.patch, "enabled")) {
+          await refreshBadge(tabId);
+        }
+        sendResponse({ ok: true, state: newState });
         break;
+      }
       case "SET_TOOL": {
         const tool = { ...DEFAULT_TOOL, ...message.tool };
         delete tool.size;
@@ -194,6 +208,8 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   if (sequence.running && sequence.tabId !== activeInfo.tabId) {
     await stopSequenceCapture(chrome.i18n.getMessage("tabChanged") || "Tab changed");
   }
+  // Update the badge for the newly active tab.
+  await refreshBadge(activeInfo.tabId);
 });
 
 chrome.tabs.onRemoved.addListener(async (tabId) => {
