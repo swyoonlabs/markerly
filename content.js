@@ -157,14 +157,50 @@
   // the side panel) without the side panel being open.
   function createFab() {
     if (fab) return;
+    // Container holds two buttons side by side: [open panel] [mode toggle]
     fab = document.createElement("div");
     fab.id = FAB_ID;
     Object.assign(fab.style, {
       position: "fixed",
-      bottom: "24px",
-      right: "24px",
-      width: "44px",
-      height: "44px",
+      top: "16px",
+      right: "16px",
+      display: "flex",
+      gap: "8px",
+      zIndex: "2147483647",
+      userSelect: "none"
+    });
+
+    // --- Open-panel button (▣) ---
+    const panelBtn = document.createElement("div");
+    panelBtn.dataset.role = "panel";
+    Object.assign(panelBtn.style, {
+      width: "40px",
+      height: "40px",
+      borderRadius: "50%",
+      background: "#111827",
+      boxShadow: "0 4px 14px rgba(0,0,0,.25)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      fontSize: "18px",
+      color: "#fff",
+      lineHeight: "1",
+      transition: "transform .1s ease"
+    });
+    panelBtn.textContent = "▣";
+    panelBtn.title = chrome.i18n.getMessage("extensionActionTitle") || "Open Markerly";
+    panelBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      send({ type: "OPEN_PANEL" });
+    });
+
+    // --- Mode-toggle button (✎ / ↗) ---
+    const toggleBtn = document.createElement("div");
+    toggleBtn.dataset.role = "toggle";
+    Object.assign(toggleBtn.style, {
+      width: "40px",
+      height: "40px",
       borderRadius: "50%",
       background: state.mode === "draw" ? "#7c5cff" : "#2ecc71",
       boxShadow: "0 4px 14px rgba(0,0,0,.25)",
@@ -172,46 +208,43 @@
       alignItems: "center",
       justifyContent: "center",
       cursor: "pointer",
-      userSelect: "none",
-      zIndex: "2147483647",
-      fontSize: "20px",
+      fontSize: "18px",
       color: "#fff",
       lineHeight: "1",
       transition: "background .15s ease, transform .1s ease"
     });
-    fab.title = state.mode === "draw"
-      ? (chrome.i18n.getMessage("pageControl") || "Page mode")
-      : (chrome.i18n.getMessage("draw") || "Draw mode");
 
-    // Click: toggle between draw and navigate modes.
+    // Click: toggle modes. Drag: move the whole FAB.
     let dragMoved = false;
     let dragStart = null;
-    fab.addEventListener("pointerdown", (e) => {
+    toggleBtn.addEventListener("pointerdown", (e) => {
       dragMoved = false;
       dragStart = { x: e.clientX, y: e.clientY };
-      fab.setPointerCapture(e.pointerId);
+      toggleBtn.setPointerCapture(e.pointerId);
       e.stopPropagation();
     });
-    fab.addEventListener("pointermove", (e) => {
+    toggleBtn.addEventListener("pointermove", (e) => {
       if (!dragStart) return;
       const dx = e.clientX - dragStart.x;
       const dy = e.clientY - dragStart.y;
       if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragMoved = true;
       if (dragMoved) {
         fab.style.right = "auto";
-        fab.style.bottom = "auto";
-        fab.style.left = `${e.clientX - 22}px`;
-        fab.style.top = `${e.clientY - 22}px`;
+        fab.style.top = "auto";
+        fab.style.left = `${e.clientX - 44}px`;
+        fab.style.top = `${e.clientY - 20}px`;
       }
       e.stopPropagation();
     });
-    fab.addEventListener("pointerup", (e) => {
-      if (fab.hasPointerCapture(e.pointerId)) fab.releasePointerCapture(e.pointerId);
+    toggleBtn.addEventListener("pointerup", (e) => {
+      if (toggleBtn.hasPointerCapture(e.pointerId)) toggleBtn.releasePointerCapture(e.pointerId);
       if (!dragMoved) toggleModeFromFab();
       dragStart = null;
       e.stopPropagation();
     });
 
+    fab.appendChild(panelBtn);
+    fab.appendChild(toggleBtn);
     document.documentElement.appendChild(fab);
     updateFab();
   }
@@ -223,9 +256,11 @@
 
   function updateFab() {
     if (!fab) return;
-    fab.textContent = state.mode === "draw" ? "✎" : "↗";
-    fab.style.background = state.mode === "draw" ? "#7c5cff" : "#2ecc71";
-    fab.title = state.mode === "draw"
+    const toggleBtn = fab.querySelector('[data-role="toggle"]');
+    if (!toggleBtn) return;
+    toggleBtn.textContent = state.mode === "draw" ? "✎" : "↗";
+    toggleBtn.style.background = state.mode === "draw" ? "#7c5cff" : "#2ecc71";
+    toggleBtn.title = state.mode === "draw"
       ? (chrome.i18n.getMessage("pageControl") || "Page mode")
       : (chrome.i18n.getMessage("draw") || "Draw mode");
   }

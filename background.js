@@ -184,6 +184,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ ok: true });
         break;
       }
+      case "OPEN_PANEL": {
+        const windowId = sender.tab?.windowId;
+        if (windowId != null) {
+          await chrome.sidePanel.open({ windowId });
+        }
+        sendResponse({ ok: true });
+        break;
+      }
       case "SEQUENCE_START":
         sequence.intervalMs = message.intervalMs ?? 3000;
         await startSequenceCapture(tabId, message.windowId);
